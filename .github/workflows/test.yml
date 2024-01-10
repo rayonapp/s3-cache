@@ -1,0 +1,106 @@
+name: main
+
+on:
+  push:
+
+jobs:
+  put-to-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: |
+          mkdir -p a/b/c
+          echo "1234" >> a/b/c/file.txt
+          echo "000" >> file.txt
+
+      - uses: ./
+        with:
+          path: |
+            a/b
+            file.txt
+          key: cache-${{ github.run_id }}-${{ github.sha }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-cache-bucket: ${{ secrets.AWS_CACHE_BUCKET }}
+
+  read-cache:
+    needs: [put-to-cache]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          path: |
+            a/b
+            file.txt
+          key: cache-${{ github.run_id }}-${{ github.sha }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-cache-bucket: ${{ secrets.AWS_CACHE_BUCKET }}
+
+      - run: |
+          test -f a/b/c/file.txt
+          test -f file.txt
+
+  read-partial-cache:
+    needs: [put-to-cache]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          path: |
+            a/b
+          key: cache-${{ github.run_id }}-${{ github.sha }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-cache-bucket: ${{ secrets.AWS_CACHE_BUCKET }}
+
+      - run: |
+          test -f a/b/c/file.txt
+
+  read-cache-and-overwrite:
+    needs: [put-to-cache]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p a/b/c
+          echo "-" >> a/b/c/file.txt
+          echo "-" >> a/b/c/file2.txt
+
+      - uses: ./
+        with:
+          path: |
+            a/b
+          key: cache-${{ github.run_id }}-${{ github.sha }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-cache-bucket: ${{ secrets.AWS_CACHE_BUCKET }}
+
+      - run: |
+          test -f a/b/c/file.txt
+          test -f a/b/c/file2.txt
+
+  lookup-cache:
+    needs: [put-to-cache]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./restore
+        id: restore
+        with:
+          lookup-only: true
+          key: cache-${{ github.run_id }}-${{ github.sha }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-cache-bucket: ${{ secrets.AWS_CACHE_BUCKET }}
+
+      - run: echo ${{ steps.restore.outputs.cache-hit }}

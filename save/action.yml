@@ -1,0 +1,26 @@
+name: s3-cache-save
+description: |
+  Cache using s3
+runs:
+  using: node20
+  main: main.js
+
+inputs:
+  key:
+    description: cache key
+    required: true
+  path:
+    description: path to files to cache,use multiline for multiple files
+
+  aws-access-key-id:
+    description: aws-access-key-id
+    required: true
+  aws-secret-access-key:
+    description: aws-secret-access-key
+    required: true
+  aws-region:
+    description: aws-region
+    required: true
+  aws-cache-bucket:
+    description: aws-cache-bucket
+    required: true
