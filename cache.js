@@ -45,7 +45,9 @@ const put = async (key, paths) => {
 
     await s3.put(key, payload);
 
-    console.log("uploaded in", Date.now() - a, "ms");
+    const payloadSize =
+      (new Uint8Array(payload).length / 1024 / 1024).toFixed(3) + "Mb";
+    console.log("uploaded in", Date.now() - a, "ms  ", payloadSize);
   } finally {
     fs.rmSync(tmpDir, { recursive: true });
   }
@@ -68,6 +70,12 @@ const get = async (key, paths) => {
         path_join(tmpDir, "__payload.zip"),
         Buffer.from(payload)
       );
+
+      {
+        const payloadSize =
+          (new Uint8Array(payload).length / 1024 / 1024).toFixed(3) + "Mb";
+        console.log(`cache hit ${payloadSize}`);
+      }
 
       execFileSync("unzip", ["__payload.zip"], { cwd: tmpDir });
 
