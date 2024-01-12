@@ -4,17 +4,10 @@ const fs = require("fs");
 const { execSync, execFileSync } = require("child_process");
 
 /**
- * set the cache-hit output
- * cache-hit=true if a cache if found for this key
+ * check if the cache exist
  */
 const lookUp = async (key) => {
-  console.log("look up", { key });
-
-  const cacheHit = await s3.exist(key);
-
-  console.log("cacheHit=", cacheHit.toString());
-
-  execSync(`echo "cache-hit=${cacheHit.toString()}" >> $GITHUB_OUTPUT`);
+  return { cacheHit: await s3.exist(key) };
 };
 
 /**
@@ -25,9 +18,6 @@ const lookUp = async (key) => {
  * and push the resulting file to s3 with the cache key as name
  */
 const put = async (key, paths) => {
-  const a = Date.now();
-  console.log("put", { key, paths });
-
   const tmpDir = fs.mkdtempSync("s3-cache");
 
   try {
@@ -45,9 +35,10 @@ const put = async (key, paths) => {
 
     await s3.put(key, payload);
 
-    const payloadSize =
-      (new Uint8Array(payload).length / 1024 / 1024).toFixed(3) + "Mb";
-    console.log("uploaded in", Date.now() - a, "ms  ", payloadSize);
+    return {
+      payloadSize:
+        (new Uint8Array(payload).length / 1024 / 1024).toFixed(3) + "Mb",
+    };
   } finally {
     fs.rmSync(tmpDir, { recursive: true });
   }
@@ -57,9 +48,6 @@ const put = async (key, paths) => {
  * get files from the cache
  */
 const get = async (key, paths) => {
-  const a = Date.now();
-  console.log("get", { key, paths });
-
   const payload = await s3.get(key);
 
   if (payload) {
@@ -70,12 +58,6 @@ const get = async (key, paths) => {
         path_join(tmpDir, "__payload.zip"),
         Buffer.from(payload)
       );
-
-      {
-        const payloadSize =
-          (new Uint8Array(payload).length / 1024 / 1024).toFixed(3) + "Mb";
-        console.log(`cache hit ${payloadSize}`);
-      }
 
       execFileSync("unzip", ["__payload.zip"], { cwd: tmpDir });
 
@@ -88,13 +70,16 @@ const get = async (key, paths) => {
         execFileSync("unzip", ["-o", path_join(tmpDir, pathKey)]);
       }
 
-      execSync(`echo "cache-hit=true" >> $GITHUB_OUTPUT`);
-
-      console.log("downloaded in", Date.now() - a, "ms");
+      return {
+        cacheHit: true,
+        payloadSize:
+          (new Uint8Array(payload).length / 1024 / 1024).toFixed(3) + "Mb",
+      };
     } finally {
       fs.rmSync(tmpDir, { recursive: true });
     }
   }
+  return { cacheHit: false };
 };
 
 module.exports = { get, put, lookUp };

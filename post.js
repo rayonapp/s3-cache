@@ -3,11 +3,20 @@
  */
 
 const { put } = require("./cache");
-const { exist } = require("./s3");
+const { getState } = require("./github-action");
 
-const key = process.env.INPUT_KEY;
-const paths = process.env.INPUT_PATH?.split("\n").filter((f) => f.trim());
+const key = getState("key");
+const paths = getState("path")
+  .split("\n")
+  .filter((f) => f.trim());
 
-exist(key).then((cacheHit) => {
-  if (!cacheHit) put(key, paths);
-});
+if (key) {
+  const a = Date.now();
+  console.log("cache put", { key, paths });
+
+  put(key, paths).then((res) => {
+    console.log("cache put done", res, "  in", Date.now() - a, "ms");
+  });
+} else {
+  console.log("cache is already set");
+}

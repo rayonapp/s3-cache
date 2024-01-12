@@ -1,8 +1,11 @@
 const { get, lookUp } = require("../cache");
+const { getInput, setOutput } = require("../github-action");
 
-const key = process.env.INPUT_KEY;
-const lookupOnly = process.env["INPUT_LOOKUP-ONLY"];
-const paths = process.env.INPUT_PATH?.split("\n").filter((f) => f.trim());
+const key = getInput("key");
+const lookupOnly = getInput("lookup-only");
+const paths = getInput("path")
+  .split("\n")
+  .filter((f) => f.trim());
 
-if (lookupOnly) lookUp(key);
-else get(key, paths);
+if (lookupOnly) lookUp(key).then((res) => setOutput("cache-hit", res.cacheHit));
+else get(key, paths).then((res) => setOutput("cache-hit", res.cacheHit));

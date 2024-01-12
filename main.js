@@ -1,6 +1,21 @@
 const { get } = require("./cache");
+const { getInput, setState, setOutput } = require("./github-action");
 
-const key = process.env.INPUT_KEY;
-const paths = process.env.INPUT_PATH?.split("\n").filter((f) => f.trim());
+const key = getInput("key");
+const paths = getInput("path")
+  .split("\n")
+  .filter((f) => f.trim());
 
-get(key, paths);
+const a = Date.now();
+console.log("cache get", { key, paths });
+get(key, paths).then((res) => {
+  console.log("cache get done", res, "  in", Date.now() - a, "ms");
+
+  if (!res.cacheHit) {
+    // save those to the state, to use in post step
+    setState("key", key);
+    setState("path", paths.join("\n"));
+  }
+
+  setOutput("cache-hit", res.cacheHit);
+});
