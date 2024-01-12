@@ -1,10 +1,15 @@
 const fs = require("fs");
 const os = require("os");
 
+/**
+ * get github action step input
+ */
 const getInput = (name) => process.env[`INPUT_${name.toUpperCase()}`];
 
-const getState = (name) => process.env[`STATE_${name}`] || "";
-
+/**
+ * set github action state
+ * which can be shared across pre / main / post action scripts
+ */
 const setState = (name, value) => {
   fs.appendFileSync(
     process.env["GITHUB_STATE"],
@@ -13,6 +18,14 @@ const setState = (name, value) => {
   );
 };
 
+/**
+ * set github action state
+ */
+const getState = (name) => process.env[`STATE_${name}`] || "";
+
+/**
+ * set github action step output
+ */
 const setOutput = (name, value) => {
   fs.appendFileSync(
     process.env["GITHUB_OUTPUT"],
@@ -21,6 +34,9 @@ const setOutput = (name, value) => {
   );
 };
 
+/**
+ * from https://github.com/actions/toolkit/blob/main/packages/core/src/file-command.ts#L27
+ */
 const prepareKeyValueMessage = (name, value) => {
   const delimiter = `ghadelimiter_${Math.random().toString()}`;
   return `${name}<<${delimiter}${os.EOL}${value}${os.EOL}${delimiter}${os.EOL}`;

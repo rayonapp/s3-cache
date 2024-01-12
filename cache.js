@@ -1,7 +1,7 @@
 const s3 = require("./s3");
 const { join: path_join } = require("path");
 const fs = require("fs");
-const { execSync, execFileSync } = require("child_process");
+const { execFileSync } = require("child_process");
 
 /**
  * check if the cache exist

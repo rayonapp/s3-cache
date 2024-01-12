@@ -1,9 +1,10 @@
 const { AwsClient } = require("./dependencies/aws4fetch/aws4fetch");
+const { getInput } = require("./github-action");
 
-const AWS_ACCESS_KEY_ID = process.env["INPUT_AWS-ACCESS-KEY-ID"];
-const AWS_SECRET_ACCESS_KEY = process.env["INPUT_AWS-SECRET-ACCESS-KEY"];
-const AWS_REGION = process.env["INPUT_AWS-REGION"];
-const AWS_CACHE_BUCKET = process.env["INPUT_AWS-CACHE-BUCKET"];
+const AWS_ACCESS_KEY_ID = getInput("aws-access-key-id");
+const AWS_SECRET_ACCESS_KEY = getInput("aws-secret-access-key");
+const AWS_REGION = getInput("aws-region");
+const AWS_CACHE_BUCKET = getInput("aws-cache-bucket");
 
 const client = new AwsClient({
   accessKeyId: AWS_ACCESS_KEY_ID,
