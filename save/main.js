@@ -6,4 +6,8 @@ const paths = getInput("path")
   .split("\n")
   .filter((f) => f.trim());
 
-put(key, paths);
+const a = Date.now();
+console.log("cache put", { key, paths });
+put(key, paths).then((res) => {
+  console.log("cache put done", res, "  in", Date.now() - a, "ms");
+});

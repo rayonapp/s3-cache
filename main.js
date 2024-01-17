@@ -1,6 +1,7 @@
 const { get } = require("./cache");
 const { getInput, setState, setOutput } = require("./github-action");
 
+const failOnCacheMiss = getInput("fail-on-cache-miss") === "true";
 const key = getInput("key");
 const paths = getInput("path")
   .split("\n")
@@ -18,4 +19,5 @@ get(key, paths).then((res) => {
   }
 
   setOutput("cache-hit", res.cacheHit);
+  if (res.cacheHit === false && failOnCacheMiss) throw new Error("cache miss");
 });

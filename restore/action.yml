@@ -12,7 +12,11 @@ inputs:
   path:
     description: path to files to cache, use multiline for multiple files
   lookup-only:
-    description: if true set outputs.cache.hit but don't download the cache
+    description: If true, only checks if cache entry exists and skips download.
+    default: "false"
+  fail-on-cache-miss:
+    description: Fail the workflow if cache entry is not found.
+    default: "false"
 
   aws-access-key-id:
     description: aws-access-key-id

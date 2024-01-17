@@ -12,6 +12,9 @@ inputs:
     required: true
   path:
     description: path to files to cache,use multiline for multiple files
+  fail-on-cache-miss:
+    description: Fail the workflow if cache entry is not found.
+    default: "false"
 
   aws-access-key-id:
     description: aws-access-key-id
